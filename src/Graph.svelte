@@ -5,7 +5,7 @@ import AxisY from './components/AxisY.svelte';
 import Multiline from './components/Multiline.svelte';
 
 import { scaleOrdinal } from 'd3-scale';
-
+export let height = null;
 export let data = [];
 
 $: longData = toLong(data);
@@ -35,7 +35,7 @@ const colorScale = scaleOrdinal()
     padding={{ right: 10, bottom: 20, left: 25 }}
     x={'x'}
     y={'value'}
-    yDomain={[0, 1e5]}
+    yDomain={[0, height]}
     {flatData}
     data={longData}
   >
