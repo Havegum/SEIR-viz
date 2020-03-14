@@ -7,12 +7,14 @@ import Multiline from './components/Multiline.svelte';
 import { scaleOrdinal } from 'd3-scale';
 export let height = null;
 export let data = [];
+export let fields = null;
 
 $: longData = toLong(data);
 $: flatData = flatten(longData);
 
 function toLong (data) {
-  return Object.keys(data[0]).map(key => {
+
+  return (fields || Object.keys(data[0])).map(key => {
   	if (key === 'x') return null;
   	return {
   		key,
@@ -26,8 +28,9 @@ function toLong (data) {
 const flatten = data => data.reduce((store, group) => store.concat(group.values), []);
 
 const colorScale = scaleOrdinal()
-  .domain(['S', 'I', 'R'])
-  .range(['#00F3', '#F00', '#0F03']);
+  .domain(['infected', 'sick', 'dead'])
+  .range(['#F00', '#AA0', '#000']);
+
 </script>
 
 <div class="chart-container">

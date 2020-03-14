@@ -4,42 +4,60 @@ const N = 5367580;
 
 
 // the number of susceptible individuals
-const s = (beta, I, S) => -beta * I * S;
+const fS = (beta, i, s) => -beta * i * s;
 
 // the number of infected individuals
-const i = (beta, I, S, gamma) => beta * I * S - gamma * I;
+const fI = (beta, i, s, gamma) => beta * i * s - gamma * i;
 
 // the number of recovered individuals
-const r = (gamma, I) => gamma * I;
+const fR = (gamma, i) => gamma * i;
 
-function* generator (beta, gamma, S=1, I=1e-6, R=0) {
+
+function* generator ({
+		infectionRate,
+		recoveryRate,
+		sickRate = 0,
+		hospitalizationRate = 0,
+		intensiveRate = 0,
+		deathRate = 0,
+		s = 1,
+		i = 1e-6,
+		r = 0
+	} = {})
+{
+	const beta = infectionRate;
+	const gamma = recoveryRate;
+
 	while (true) {
     // Calculate deltas
-		let dS = s(beta, I, S);
-		let dI = i(beta, I, S, gamma);
-		let dR = r(gamma, I);
+		let dS = fS(beta, i, s);
+		let dI = fI(beta, i, s, gamma);
+		let dR = fR(gamma, i);
 
     // Update, then yield state
-		S += dS;
-		I += dI;
-		R += dR;
-		yield { S, I, R };
+		s += dS;
+		i += dI;
+		r += dR;
+
+		let I = i * N;
+
+		yield {
+			infected: I,
+			sick: I * sickRate,
+			hospitalized: I * hospitalizationRate,
+			intensiveCare: I * intensiveRate,
+			dead: I * deathRate
+		};
 	}
 }
 
-function scaleToPop (d) {
-  d.S *= N;
-  d.I *= N;
-  d.R *= N;
-  return d;
-}
+function model (options) {
+	let gen = generator(options);
 
-function model ({ generator, iterations }) {
-	return Array(iterations)
+	return Array(options.iterations || 10)
 		.fill()
-		.map((_, x) => ({ x, ...generator.next().value }))
-		.map(scaleToPop)
+		.map((_, x) => ({ x, ...gen.next().value }))
 }
 
 
-export { generator, model };
+export default model;
