@@ -59,7 +59,8 @@ function* generator ({
 			sick: I * sickRate,
 			hospitalized: I * hospitalizationRate,
 			intensiveCare: I * intensiveRate,
-			dead: I * deathRate
+			dead: I * deathRate,
+      recovered: r * N
 		};
 	}
 }
@@ -75,3 +76,4 @@ function model ({ iterations, ...options }={}) {
 
 
 export default model;
+export { N };

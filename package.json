@@ -15,6 +15,7 @@
     "svelte-preprocess": "^3.0.2"
   },
   "dependencies": {
+    "d3-ease": "^1.0.6",
     "d3-scale": "^3.2.1",
     "layercake": "^2.0.1"
   },

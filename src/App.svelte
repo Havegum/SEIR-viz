@@ -1,9 +1,40 @@
 <script>
 import Graph from './Graph.svelte';
 import Slider from './components/Slider.svelte';
-import model from './SEIR-model.js';
+import model, { N } from './SEIR-model.js';
+import { easeExpOut, easeExp } from 'd3-ease';
 
-let p = 0.141; // Magic number
+let p = 0.141; // NB: Magic number
+
+
+let tweenTarget = null;
+let targets = ['all', 'infected', 'hospitalized'];
+let yLimits = [N, 1e5, 5e3];
+let yLim = N;
+
+function tweenY (target) {
+	let i;
+	const from = yLim;
+	const to = yLimits[targets.indexOf(target)];
+	const interpolate = from > to ? easeExpOut : easeExp;
+
+	let start = null;
+	tweenTarget = target;
+
+	window.requestAnimationFrame(function animate(timestamp) {
+		if (tweenTarget !== target) return;
+		if (!start) start = timestamp;
+
+		i = Math.min(1, (timestamp - start) / 2000); // ms
+
+		let t = interpolate(i)
+
+		yLim = (1-t) * from + t * to;
+
+		if (i === 1) return;
+		window.requestAnimationFrame(animate);
+	});
+}
 
 let handWashAdjust = 0;
 let isolatednessAdjust = 0;
@@ -40,10 +71,8 @@ $: data = model({
 	intensiveRate,
 	deathRate
 });
-// model returns the following fields:
-// ['infected', 'sick', 'hospitalized', 'intensiveCare', 'dead']
-
-let yLim = 10e4;
+// NB: model returns the following fields:
+// ['infected', 'sick', 'hospitalized', 'intensiveCare', 'dead', 'recovered']
 
 // TODO: better text
 function indicate (level) {
@@ -56,20 +85,25 @@ function indicate (level) {
 </script>
 
 
+
 <!-- TODO: style, layout -->
 <div class="controls">
+	<button on:click={() => tweenY('all')}>Hele Norge</button>
+	<button on:click={() => tweenY('infected')}>Smittede</button>
+	<button on:click={() => tweenY('hospitalized')}>Innlagte</button>
+
 	<Slider bind:value={handWashAdjust}     min={-1} max={1}>Håndvask: {indicate(handWashAdjust)}</Slider>
 	<Slider bind:value={isolatednessAdjust} min={-1} max={1}>Isoleringsgrad: {indicate(isolatednessAdjust)}</Slider>
 </div>
 
 <div class="graph">
-	<Graph {data} {yLim} fields={['sick', 'hospitalized', 'infected']}/>
+	<Graph {data} {yLim} fields={['recovered', 'sick', 'hospitalized', 'infected']}/>
 </div>
 
 
 <style lang="scss">
 .graph {
-	height: 15em; // Layercake must have nonzero height !important
+	height: 15em; // NB: Layercake must have nonzero height !important
 	width: 60em;
 	margin-bottom: 1em;
 }

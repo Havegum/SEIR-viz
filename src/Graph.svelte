@@ -28,12 +28,12 @@ function toLong (data) {
 const flatten = data => data.reduce((store, group) => store.concat(group.values), []);
 
 const colorScale = scaleOrdinal()
-  .domain(['infected', 'sick', 'hospitalized', 'dead'])
-  .range(['#dcc', '#A19', '#F23', '#000']);
+  .domain(['infected', 'sick', 'hospitalized', 'dead', 'recovered'])
+  .range(['#dcc', '#A19', '#F23', '#000', '#1f3']);
 
 const localize = scaleOrdinal() // .. lol
-  .domain(['infected', 'sick', 'hospitalized', 'dead'])
-  .range(['smittede', 'syke', 'innlagte', 'døde']);
+  .domain(['infected', 'sick', 'hospitalized', 'dead', 'recovered'])
+  .range(['smittede', 'syke', 'innlagte', 'døde', 'friske igjen']);
 </script>
 
 
@@ -54,7 +54,7 @@ const localize = scaleOrdinal() // .. lol
         <Area {key} color={colorScale(key)}/>
 
         <!-- TODO: style labels -->
-        <!-- REVIEW: Use LayerCakes `Html`-component for pixel-perfect fonts -->
+        <!-- IDEA: Use LayerCakes `Html`-component for pixel-perfect fonts -->
         <rect fill={colorScale(key)} width="10" height="10" y={5 + 15 * i} x="10"/>
         <text y={15 + 15 * i} x="22">{localize(key)}</text>
       {/each}
