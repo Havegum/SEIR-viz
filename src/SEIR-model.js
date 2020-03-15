@@ -58,8 +58,8 @@ function* generator ({
 			infected: I,
 			sick: I * sickRate,
 			hospitalized: I * hospitalizationRate,
-			intensiveCare: I * intensiveRate,
-			dead: I * deathRate,
+			// intensiveCare: I * intensiveRate,
+			// dead: I * deathRate,
       recovered: r * N
 		};
 	}

@@ -2,6 +2,7 @@
 import { getContext } from 'svelte';
 export let key;
 export let color = '#000';
+export let visible = false;
 
 const { data, xGet, yGet, xScale, yScale, extents } = getContext('LayerCake');
 
@@ -24,11 +25,16 @@ $: {
 </script>
 
 
-<path class='path-area' d='{area}' fill={color}></path>
+<path class='path-area' class:visible d='{area}' fill={color} ></path>
 
 
 <style>
 .path-area {
+  opacity: 0;
+  transition: opacity 400ms;
+}
+
+.visible {
   opacity: 0.2;
 }
 </style>

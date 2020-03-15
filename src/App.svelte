@@ -6,21 +6,25 @@ import { easeExpOut, easeExp } from 'd3-ease';
 
 let p = 0.141; // NB: Magic number
 
-
+let visible = ['recovered', 'infected'];
 let tweenTarget = null;
-let targets = ['all', 'infected', 'hospitalized'];
+let scales = ['all', 'infected', 'hospitalized'];
 let yLimits = [N, 1e5, 5e3];
 let yLim = N;
 
 function tweenY (target) {
+	// Change visible
+	visible = (target === 'all') ? ['recovered', 'infected'] : ['sick', 'hospitalized', 'infected'];
+
+	// Animation setup
 	let i;
 	const from = yLim;
-	const to = yLimits[targets.indexOf(target)];
+	const to = yLimits[scales.indexOf(target)];
 	const interpolate = from > to ? easeExpOut : easeExp;
 
 	let start = null;
 	tweenTarget = target;
-
+	// Off it goes!
 	window.requestAnimationFrame(function animate(timestamp) {
 		if (tweenTarget !== target) return;
 		if (!start) start = timestamp;
@@ -85,7 +89,6 @@ function indicate (level) {
 </script>
 
 
-
 <!-- TODO: style, layout -->
 <div class="controls">
 	<button on:click={() => tweenY('all')}>Hele Norge</button>
@@ -97,7 +100,7 @@ function indicate (level) {
 </div>
 
 <div class="graph">
-	<Graph {data} {yLim} fields={['recovered', 'sick', 'hospitalized', 'infected']}/>
+	<Graph {data} {yLim} {visible}/>
 </div>
 
 
