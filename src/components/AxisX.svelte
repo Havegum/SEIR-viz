@@ -25,6 +25,7 @@ function textAnchor(i) {
 }
 </script>
 
+
 <g class='axis x-axis'>
   {#each tickVals as tick, i}
     <g class='tick tick-{ tick }' transform='translate({$xScale(tick)},{$yScale.range()[0]})'>
@@ -38,6 +39,7 @@ function textAnchor(i) {
     <line class="baseline" y1='{$height + 0.5}' y2='{$height + 0.5}' x1='0' x2='{$width}'></line>
   {/if}
 </g>
+
 
 <style>
 .tick {

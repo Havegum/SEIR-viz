@@ -1,89 +1,76 @@
 <script>
 import Graph from './Graph.svelte';
 import Slider from './components/Slider.svelte';
-import model from './model.js';
+import model from './SEIR-model.js';
 
-let p = 0.17;
-// R0 = 1.3 (tall fra FHI)
-let contactRate = Math.floor(1.3 / p);
-// $: infectionRate = contagiousness * contact;
-let covidDaysIll = 4;
-$: covidRecoveryRate = 1 / covidDaysIll;
-$: covidInfectionRate = p * contactRate * covidRecoveryRate;
+let p = 0.141; // Magic number
+
+let handWashAdjust = 0;
+let isolatednessAdjust = 0;
+
+// REVIEW: Juster kontrollsensitivitet her (0.04 nå):
+$: handWash     = 1 + 0.04 * handWashAdjust;
+$: isolatedness = 1 + 0.04 * isolatednessAdjust;
+
+$: contactRate = (3 / handWash) * (3 / isolatedness);
+
+let duration = 3.5;
+$: recoveryRate = 1 / duration;
+$: infectionRate = p * contactRate * recoveryRate;
+
+let latentPeriod = 1 - 1 / 3;
 
 // Fra FHI:
-let covidSickRate = 1 / 3;
-let covidHospitalizationRate = 3 / 100;
-let covidIntensiveRate = covidHospitalizationRate * 0.25;
+let sickRate = 1 / 3;
+let hospitalizationRate = 3 / 100;
+let intensiveRate = hospitalizationRate * 0.25;
 
-let covidDeathRate = 0.01;
+let deathRate = 0.01;
 
+// Days to simulate
 let iterations = 365;
 
-$: covidData = model({
+$: data = model({
 	iterations,
-
-	infectionRate: covidInfectionRate,
-	recoveryRate: covidRecoveryRate,
-	sickRate: covidSickRate,
-	hospitalizationRate: covidHospitalizationRate,
-	intensiveRate: covidIntensiveRate,
-	deathRate: covidDeathRate
+	infectionRate,
+	latentPeriod,
+	recoveryRate,
+	sickRate,
+	hospitalizationRate,
+	intensiveRate,
+	deathRate
 });
+// model returns the following fields:
+// ['infected', 'sick', 'hospitalized', 'intensiveCare', 'dead']
 
+let yLim = 10e4;
 
-// Influensatall
-let fluRecoveryRate = 1 / 7;
-// "Most people recover from fever and other symptoms within a week"
-// (from https://www.who.int/en/news-room/fact-sheets/detail/influenza-(seasonal))
-
-let fluInfectionRate = fluRecoveryRate * 1.28
-// infection_rate / recovery_rate = R0,
-// so infection_rate = recovery_rate * R0
-// "The median R value for seasonal influenza was 1.28"
-// (from: https://bmcinfectdis.biomedcentral.com/articles/10.1186/1471-2334-14-480)
-
-let fluDeathRate = 0.001;
-// from: https://web.archive.org/web/20091020120444/http://www.themalaysianinsider.com/index.php/world/37983-h1n1-fatality-rates-comparable-to-seasonal-flu
-
-$: fluData = model({
-	iterations,
-
-	infectionRate: fluInfectionRate,
-	recoveryRate: fluRecoveryRate,
-	deathRate: fluDeathRate
-});
-
-let yScale = 10e4
+// TODO: better text
+function indicate (level) {
+	if (level > 0.66) return 'veldig mye';
+	if (level > 0.33) return 'mye';
+	if (level > -0.33) return 'som normalt';
+	if (level > -0.66) return 'lite';
+	return 'veldig lite';
+}
 </script>
 
 
-<div class="wrap">
-	<h2>Influensa</h2>
-	<Graph data={fluData} height={yScale}/>
-</div>
-
-<div class="wrap">
-	<h2>Korona</h2>
-	<Graph data={covidData} height={yScale} fields={['infected', 'sick', 'dead']}/>
-</div>
-
+<!-- TODO: style, layout -->
 <div class="controls">
-	<Slider bind:value={p} min={0.15} max={0.36}>Smittegrad: {Math.floor(p * 100)} %</Slider>
-	<Slider bind:value={contactRate} min={0} max={10} step={0.1}>Kontakthyppighet: {Math.floor(contactRate)}</Slider>
-	<Slider bind:value={covidDaysIll} min={3} max={8}>Dager syk</Slider>
-	<Slider bind:value={iterations} min={30} max={730} step={1}>x-akse</Slider>
-	<Slider bind:value={yScale} min={8e4} max={5e5} step={1000}>y-akse</Slider>
+	<Slider bind:value={handWashAdjust}     min={-1} max={1}>Håndvask: {indicate(handWashAdjust)}</Slider>
+	<Slider bind:value={isolatednessAdjust} min={-1} max={1}>Isoleringsgrad: {indicate(isolatednessAdjust)}</Slider>
 </div>
+
+<div class="graph">
+	<Graph {data} {yLim} fields={['sick', 'hospitalized', 'infected']}/>
+</div>
+
 
 <style lang="scss">
-.wrap {
-	height: 15em;
+.graph {
+	height: 15em; // Layercake must have nonzero height !important
 	width: 60em;
-	margin: 0 auto;
-
-	+ .wrap {
-		margin-top: 5em;
-	}
+	margin-bottom: 1em;
 }
 </style>

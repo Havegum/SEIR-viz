@@ -6,6 +6,7 @@ export let value = 1;
 export let step = 1e-3
 </script>
 
+
 <label for="{name}">
   <p><slot></slot></p>
   <input id="{name}" type="range" bind:value {min} {max} {step}>
