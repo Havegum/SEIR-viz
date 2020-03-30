@@ -5,10 +5,13 @@ import AxisY from './components/AxisY.svelte';
 import Line from './components/Line.svelte';
 import Area from './components/Area.svelte';
 
-import { scaleOrdinal } from 'd3-scale';
+import { scaleOrdinal, scaleTime } from 'd3-scale';
 export let yLim = null;
 export let data = [];
 export let visible;
+export let colorScale;
+
+const FEB26 = new Date('2020-02-26').getTime();
 
 $: fields = Object.keys(data[0]).filter(d => d !== 'x');
 
@@ -28,15 +31,10 @@ function toLong (data) {
 }
 const flatten = data => data.reduce((store, group) => store.concat(group.values), []);
 
-// TODO: choose colors
-const colorScale = scaleOrdinal()
-  .domain(['infected', 'sick', 'hospitalized', 'dead', 'recovered'])
-  .range(['#dcc', '#A19', '#F23', '#000', '#1a5']);
 
-// TODO: Localize
-const localize = scaleOrdinal()
-  .domain(['infected', 'sick', 'hospitalized', 'dead', 'recovered'])
-  .range(['smittede', 'syke', 'innlagte', 'døde', 'friske igjen']);
+function formatTick (x) {
+  return new Date(FEB26 + x * 1000 * 60 * 60 * 24).toLocaleString('nb-NO', { month: 'long'});
+}
 </script>
 
 
@@ -50,7 +48,7 @@ const localize = scaleOrdinal()
     data={longData}
   >
     <Svg>
-      <AxisX/>
+      <AxisX {formatTick}/>
       <AxisY/>
       {#each fields as key, i}
         <Line {key} color={colorScale(key)} visible={visible.indexOf(key) > -1}/>
@@ -61,7 +59,7 @@ const localize = scaleOrdinal()
         <!-- TODO: style labels -->
         <!-- IDEA: Use LayerCakes `Html`-component for pixel-perfect fonts -->
         <rect fill={colorScale(key)} width="10" height="10" y={5 + 15 * i} x="10"/>
-        <text y={15 + 15 * i} x="22">{localize(key)}</text>
+        <text y={15 + 15 * i} x="22">{key}</text>
       {/each}
     </Svg>
   </LayerCake>

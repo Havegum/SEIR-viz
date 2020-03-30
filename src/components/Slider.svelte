@@ -3,7 +3,7 @@ export let name = Math.floor(Math.random() * 1e6).toString(36); // lolhash
 export let min = 0;
 export let max = 1;
 export let value = 1;
-export let step = 1e-3
+export let step = 1e-5
 </script>
 
 
